@@ -51,8 +51,16 @@ Admitted.
 (*The above theorems may be combined to give a bound on the convergence rate of
   sqrt_err*)
 Theorem sqrt_err_convergence : forall (c:Q) (x0:Q) (n:nat), (n>1)%nat /\ c>=0 ->
-(sqrt_err c x0 n) <= (1#4)^(Z_of_nat n) /\ (sqrt_err c x0 n) >= 0.
+(sqrt_err c x0 n) <= (sqrt_err c x0 1)*((1#4)^(Z_of_nat n)) /\ (sqrt_err c x0 n) >= 0.
 Proof.
 Admitted.
 
+
+(*Finally we provide the function which gives us an "n" that will
+guarantee a user-specified error criterion.*)
+
+Theorem sqrt_with_specified_error (c:Q) (x0:Q) (err:Q) : c>=0 /\ x0>=0 /\ err>0 ->
+{n:nat | sqrt_err c x0 n <= err}.
+Proof.
+Admitted.
 
