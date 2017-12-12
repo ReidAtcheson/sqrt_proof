@@ -31,11 +31,11 @@ Eval compute in (sqrt twoQ 1 5).
 *)
 Definition sqrt_err (c:Q) (x0:Q) (n:nat) := (sqrt c x0 n)*(sqrt c x0 n) - c.
 
-(*One key property of sqrt_err is that if c>=0, then no matter 
+(*One key property of sqrt_err is that if c>=0 and n>=1, then no matter 
   what x0 we pick as an initial guess,
-  we will always have (sqrt_err c x0 1)>=0.*)
+  we will always have (sqrt_err c x0 n)>=0.*)
 
-Theorem sqrt_err_poscondition : forall c x0, c>=0 -> sqrt_err c x0 1 >= 0.
+Theorem sqrt_err_poscondition : forall c x0 n, c>=0 /\ (n>=1)%nat -> sqrt_err c x0 n >= 0.
 Proof.
 Admitted.
 
@@ -45,11 +45,14 @@ Admitted.
 
 Theorem sqrt_err_decay : forall (c:Q) (x0:Q) (n:nat), (n>1)%nat /\ c>=0 -> 
 (sqrt_err c x0 n+1) <= (sqrt_err c x0 n)*(1#4).
-
+Proof.
+Admitted.
 
 (*The above theorems may be combined to give a bound on the convergence rate of
   sqrt_err*)
 Theorem sqrt_err_convergence : forall (c:Q) (x0:Q) (n:nat), (n>1)%nat /\ c>=0 ->
-(sqrt_err c x0 n) <= (1#4)^(Z_of_nat n).
+(sqrt_err c x0 n) <= (1#4)^(Z_of_nat n) /\ (sqrt_err c x0 n) >= 0.
 Proof.
 Admitted.
+
+
