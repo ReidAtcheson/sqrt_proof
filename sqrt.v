@@ -39,3 +39,17 @@ Theorem sqrt_err_poscondition : forall c x0, c>=0 -> sqrt_err c x0 1 >= 0.
 Proof.
 Admitted.
 
+(*The next key property of sqrt_err is that if c>=0, then regardless of
+  what x0 we pick and if n>1, then (sqrt_err c x0 (n+1)) <= (sqrt_err c x0 n)/4.*)
+
+
+Theorem sqrt_err_decay : forall (c:Q) (x0:Q) (n:nat), (n>1)%nat /\ c>=0 -> 
+(sqrt_err c x0 n+1) <= (sqrt_err c x0 n)*(1#4).
+
+
+(*The above theorems may be combined to give a bound on the convergence rate of
+  sqrt_err*)
+Theorem sqrt_err_convergence : forall (c:Q) (x0:Q) (n:nat), (n>1)%nat /\ c>=0 ->
+(sqrt_err c x0 n) <= (1#4)^(Z_of_nat n).
+Proof.
+Admitted.
