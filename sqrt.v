@@ -2,6 +2,7 @@ Require Import QArith.QArith_base.
 Require Import QArith.Qabs.
 Require Import Psatz.
 Require Import Init.Nat.
+Require Import Omega.
 
 
 
@@ -177,26 +178,36 @@ Qed.
 (*The next key property of sqrt_err is that if c>=0, then regardless of
   what x0 we pick and if n>1, then (sqrt_err c x0 (n+1)) <= (sqrt_err c x0 n)/4.*)
 
-Lemma big_den_makes_smaller : forall a b c, a>=0 -> b>0 -> c>0 -> c>b -> (a/b) < (a/c).
+Lemma a_leq_b_inva_geq_invb : forall a b, a>0 -> b>0 -> a>b -> /a < /b.
+Proof.
+intros.
+unfold Qinv.
+remember (Qnum a) as z1.
+remember (Qnum b) as z2.
+destruct z1. destruct z2.
+* assert(not (0<a)). 
+  assert( a == (Qnum a)#(Qden a) ). auto with *. 
+  assert( (Qnum a) = 0%Z ). auto with *.
+  rewrite H2.
+  assert( a==0 ). auto with *.
+  auto with *.
+  eauto with *.
+* auto with *.
+* assert( not (0 < b) ).
+  assert( b == (Qnum b)#(Qden b) ). auto with *.
+  assert( (Qnum b) = Z.neg p). auto with *.
+  rewrite H3 in H2.
+  rewrite H2.
+  unfold Qlt.
+  simpl.
+   
+Qed.
+
+Lemma big_den_makes_smaller : forall a b c, a>=0 -> b>0 -> c>0 -> b>c -> (a/b) <= (a/c).
 intros.
 destruct b.
-{
-  destruct c.
-  {
-    destruct Qnum.
-    {
-      assert( not (0 < 0#Qden) ). auto with *.
-      eauto with *.
-    }
-    {
-      unfold Qdiv. unfold Qinv. unfold Qmult. simpl.
-    }
-    {
-    }
-  }
-}
-
-Qed.
+destruct c.
+assert(a / (Qnum # Qden) == Qden*a/QnumQed.
 
 Theorem sqrt_err_decay : forall (c:Q) (x0:Q) (n:nat), (n>1)%nat /\ c>=0 /\ x0>0 -> 
 (sqrt_err c x0 (S n)) <= (sqrt_err c x0 n)*(1#4).
