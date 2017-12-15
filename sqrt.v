@@ -194,8 +194,6 @@ destruct z1.
 * rewrite H0 in H.
   assert(not (0 < (Z.neg p) # (Qden a) ) ). unfold Qlt. simpl. nia.
   contradiction.
-
-  
 Qed.
 
 Lemma den_inva_eq_numa : forall a, a>0 -> ((Zpos (Qden (/a)))) = Qnum a.
@@ -211,7 +209,7 @@ destruct z1.
   unfold Qlt. simpl. nia. contradiction.
 Qed.
 
-Lemma a_leq_b_inva_geq_invb : forall a b, a>0 -> b>0 -> a>b -> /a < /b.
+Lemma a_leq_b_inva_geq_invb : forall a b, a>0 -> b>0 -> a>=b -> /a <= /b.
 Proof.
 intros.
 unfold Qlt.
@@ -219,26 +217,27 @@ assert( Qnum (/a) = Zpos (Qden a) ).
 apply num_inva_eq_dena. apply H.
 assert( Qnum (/b) = Zpos (Qden b) ).
 apply num_inva_eq_dena. apply H0.
+unfold Qle.
 rewrite H2. rewrite H3.
 assert( ((Zpos (Qden (/b))) = Qnum b)%Z). apply den_inva_eq_numa. apply H0.
 assert( ((Zpos (Qden (/a))) = Qnum a)%Z). apply den_inva_eq_numa. apply H.
-rewrite H4. rewrite H5. unfold Qlt in H1.
+rewrite H4. rewrite H5. unfold Qle in H1.
 nia.
 Qed.
 
-Lemma big_den_makes_smaller : forall a b c, a>0 -> b>0 -> c>0 -> b>c -> (a/b) < (a/c).
+Lemma big_den_makes_smaller : forall a b c, a>0 -> b>0 -> c>0 -> b>=c -> (a/b) <= (a/c).
 Proof.
 intros.
 unfold Qdiv.
-assert( /b < /c ).
+assert( /b <= /c ).
 apply a_leq_b_inva_geq_invb. apply H0. apply H1. apply H2.
 assert( a* /b == /b * a). lra.
 assert( a * /c == /c * a). lra.
 rewrite H4. rewrite H5.
-apply Qmult_lt_compat_r.
-apply H.
+apply Qmult_le_compat_r.
 apply a_leq_b_inva_geq_invb.
 apply H0. apply H1. apply H2.
+nra.
 Qed.
 Theorem sqrt_err_decay : forall (c:Q) (x0:Q) (n:nat), (n>1)%nat /\ c>0 /\ x0>0 -> 
 (sqrt_err c x0 (S n)) < (sqrt_err c x0 n)*(1#4).
@@ -261,14 +260,14 @@ unfold twoQ.
 assert( m*m == c + sqrt_err c x0 n). unfold sqrt_err. rewrite Heqm. lra.
 rewrite H3.
 remember (sqrt_err c x0 n) as k.
-assert(k>0). rewrite Heqk. apply sqrt_err_poscondition.
+assert(k>=0). rewrite Heqk. apply sqrt_err_poscondition.
 assert( (n>=1)%nat ). auto with *.
 assert( 0 <c ). apply H.
 assert( 0 < x0). apply H.
 auto with *.
 assert( ((c + k + c * c / (c + k)) * (1 # 4)) <= (c + k + c * c / (c )) * (1 # 4) ).
 {
-  assert( c+k > c). lra.
+  assert( c+k >= c). lra.
   assert( (c*c)/(c+k) <= (c*c)/c ).
 }
 Qed.
