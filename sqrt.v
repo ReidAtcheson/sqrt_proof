@@ -50,6 +50,12 @@ intros.
 nra.
 Qed.
 
+Lemma nonzero_r_squared_positive : forall (r:Q), r>0 -> r*r>0.
+Proof.
+intros.
+nra.
+Qed.
+
 
 Theorem sqrt_formula : forall c x0 n, c>=0 /\ (n>=1)%nat /\ x0>0 -> sqrt c x0 n == (1#2)*(sqrt c x0 (n-1))+(1#2)*(c/(sqrt c x0 (n-1))).
 Proof.
@@ -269,6 +275,11 @@ assert( ((c + k + c * c / (c + k)) * (1 # 4)) <= (c + k + c * c / (c )) * (1 # 4
 {
   assert( c+k >= c). lra.
   assert( (c*c)/(c+k) <= (c*c)/c ).
+  * remember (c*c) as a. remember(c+k) as b.
+    apply big_den_makes_smaller. rewrite Heqa.
+    assert( 0 < c). lra. apply nonzero_r_squared_positive.
+    apply H6. rewrite Heqb. lra. lra. lra.
+  *
 }
 Qed.
 
