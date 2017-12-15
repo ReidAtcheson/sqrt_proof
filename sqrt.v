@@ -1,8 +1,11 @@
 Require Import QArith.QArith_base.
 Require Import QArith.Qabs.
+Require Import QArith.Qpower.
+Require Import ZArith.Znat.
 Require Import Psatz.
 Require Import Init.Nat.
 Require Import Omega.
+
 
 
 
@@ -245,7 +248,7 @@ apply a_leq_b_inva_geq_invb.
 apply H0. apply H1. apply H2.
 nra.
 Qed.
-Theorem sqrt_err_decay : forall (c:Q) (x0:Q) (n:nat), (n>1)%nat /\ c>0 /\ x0>0 -> 
+Theorem sqrt_err_decay : forall (c:Q) (x0:Q) (n:nat), (n>=1)%nat /\ c>0 /\ x0>0 -> 
 (sqrt_err c x0 (S n)) <= (sqrt_err c x0 n)*(1#4).
 Proof.
 intros.
@@ -291,24 +294,103 @@ assert( c*c/c == c ).
 
 Qed.
 
+
+Lemma nat_threecases : forall (n:nat), { (n=0)%nat } + {(n=1)%nat} + { (n>1)%nat}.
+Proof.
+intros.
+induction n.
+* auto with *.
+* destruct IHn. destruct s.
+** auto with *.
+** auto with *.
+** auto with *.
+Qed.
+
+Lemma Qlt_hack : forall a b c, a>=0 -> b>=0 -> c>=0 -> a <= c -> a*b <= c*b.
+Proof.
+intros.
+nra.
+Qed.
+
+Lemma Qpower_reduction : forall a (n:Z), (n>0)%Z -> a>0 -> a^n == a*(a^(n-1)).
+Proof.
+intros.
+assert( a== a^1). lra.
+remember (a^n) as an. remember ( a^(n-1)) as anm1.
+rewrite H1.
+rewrite Heqan. rewrite Heqanm1.
+remember ((n-1)%Z) as nm1.
+assert( (n = 1 + (n-1))%Z). auto with *.
+rewrite H2.
+rewrite Heqnm1.
+apply Qpower_plus.
+lra.
+Qed.
+
+Lemma Zinject_to_nat_compat : forall (n:nat), (1<=n)%nat -> (Z.of_nat (n-1) = (Z.of_nat n) - 1)%Z.
+Proof.
+intros.
+apply Nat2Z.inj_sub.
+apply H.
+Qed.
+
+
 (*The above theorems may be combined to give a bound on the convergence rate of
   sqrt_err*)
 Theorem sqrt_err_convergence : forall (c:Q) (x0:Q) (n:nat), (n>1)%nat -> c>0 -> x0>0 ->
-(sqrt_err c x0 n) <= (sqrt_err c x0 1)*((1#4)^(Z_of_nat n)) /\ (sqrt_err c x0 n) >= 0.
+(sqrt_err c x0 n) <= (sqrt_err c x0 1)*((1#4)^(Z_of_nat (n-1))) /\ (sqrt_err c x0 n) >= 0.
 Proof.
 intros.
 assert( 0 <= sqrt_err c x0 n). apply sqrt_err_poscondition. auto with *.
-assert( sqrt_err c x0 n <= sqrt_err c x0 1 * (1 # 4) ^ Z.of_nat n).
+assert( sqrt_err c x0 n <= sqrt_err c x0 1 * (1 # 4) ^ Z.of_nat (n-1)).
 {
   induction n.
   * assert( not (0>1)%nat ). auto with *. contradiction.
-  * assert( sqrt_err c x0 (S n) <= (sqrt_err c x0 n)*(1#4) ).
-  ** apply sqrt_err_decay. 
-     assert( {(n=1)%nat} + {(n>1)%nat} ).
-  *** destruct n. auto with *. auto with *.
+  * assert( sqrt_err c x0 (S n) <= (sqrt_err c x0 n)*(1#4) ). apply sqrt_err_decay.
+  ** assert( {(n=0)%nat} + {(n=1)%nat} + { (n>1)%nat } ). apply nat_threecases.
+     destruct H3. destruct s.
+  + auto with *.
+  + auto with *.
+  + auto with *.
+  ** assert( {(n=0)%nat} + {(n=1)%nat} + { (n>1)%nat } ). apply nat_threecases. destruct H4. destruct s.
+  *** auto with *.
+  *** rewrite e in H3. simpl. rewrite e. simpl. apply H3.
+  *** assert(       sqrt_err c x0 n <=
+      sqrt_err c x0 1 * (1 # 4) ^ Z.of_nat (n - 1) ).
+      {
+        apply IHn.
+        apply g. apply sqrt_err_poscondition. auto with *.
+      }
+      assert( (S n - 1 = n)%nat ). auto with *. rewrite H5.
+      assert( sqrt_err c x0 (S n) <=
+sqrt_err c x0 1 * (1 # 4) ^ Z.of_nat (n-1)). nra.
+      assert(
+sqrt_err c x0 1 * (1 # 4) ^ Z.of_nat n == sqrt_err c x0 1 * (1#4) * (1 # 4) ^ Z.of_nat (n-1)).
+{
+  assert((1 # 4) ^ Z.of_nat n ==
+    (1#4)* (1 # 4) ^ Z.of_nat (n - 1)).
+  {
+    remember (1#4) as a.
+    remember (Z.of_nat n) as m.
+    assert( (Z.of_nat (n-1) = m-1)%Z ).
+    {
+      rewrite Heqm.
+      apply Nat2Z.inj_sub.
+      auto with *.
+    }
+    rewrite H7.
+    apply Qpower_reduction. auto with *. rewrite Heqa. lra.
+  }
+  rewrite H7.
+  lra.
 }
+nra.
+  
+}
+* auto with *.
 
-Admitted.
+
+Qed.
 
 
 (*Finally we provide the function which gives us an "n" that will
