@@ -246,7 +246,7 @@ apply H0. apply H1. apply H2.
 nra.
 Qed.
 Theorem sqrt_err_decay : forall (c:Q) (x0:Q) (n:nat), (n>1)%nat /\ c>0 /\ x0>0 -> 
-(sqrt_err c x0 (S n)) < (sqrt_err c x0 n)*(1#4).
+(sqrt_err c x0 (S n)) <= (sqrt_err c x0 n)*(1#4).
 Proof.
 intros.
 unfold sqrt_err.
@@ -271,7 +271,7 @@ assert( (n>=1)%nat ). auto with *.
 assert( 0 <c ). apply H.
 assert( 0 < x0). apply H.
 auto with *.
-assert( ((c + k + c * c / (c + k)) * (1 # 4)) <= (c + k + c * c / (c )) * (1 # 4) ).
+assert( ((c + k + c * c / (c + k)) * (1 # 4) - c/(2#1) ) <= (c + k + c * c / (c )) * (1 # 4) - c/(2#1)).
 {
   assert( c+k >= c). lra.
   assert( (c*c)/(c+k) <= (c*c)/c ).
@@ -279,15 +279,35 @@ assert( ((c + k + c * c / (c + k)) * (1 # 4)) <= (c + k + c * c / (c )) * (1 # 4
     apply big_den_makes_smaller. rewrite Heqa.
     assert( 0 < c). lra. apply nonzero_r_squared_positive.
     apply H6. rewrite Heqb. lra. lra. lra.
-  *
+  * lra.
 }
+assert( c*c/c == c ).
+* assert( c*c/c == c*(c/c)). unfold Qdiv. lra. rewrite H6.
+  unfold Qdiv. assert( c * /c == 1). apply Qmult_inv_r. lra.
+  rewrite H7. lra.
+* rewrite H6 in H5.
+  assert( (c + k + c) * (1 # 4) - c / (2 # 1) == (c+k-c)*(1#4)). field.
+  rewrite H7 in H5. auto with *.
+
 Qed.
 
 (*The above theorems may be combined to give a bound on the convergence rate of
   sqrt_err*)
-Theorem sqrt_err_convergence : forall (c:Q) (x0:Q) (n:nat), (n>1)%nat /\ c>=0 ->
+Theorem sqrt_err_convergence : forall (c:Q) (x0:Q) (n:nat), (n>1)%nat -> c>0 -> x0>0 ->
 (sqrt_err c x0 n) <= (sqrt_err c x0 1)*((1#4)^(Z_of_nat n)) /\ (sqrt_err c x0 n) >= 0.
 Proof.
+intros.
+assert( 0 <= sqrt_err c x0 n). apply sqrt_err_poscondition. auto with *.
+assert( sqrt_err c x0 n <= sqrt_err c x0 1 * (1 # 4) ^ Z.of_nat n).
+{
+  induction n.
+  * assert( not (0>1)%nat ). auto with *. contradiction.
+  * assert( sqrt_err c x0 (S n) <= (sqrt_err c x0 n)*(1#4) ).
+  ** apply sqrt_err_decay. 
+     assert( {(n=1)%nat} + {(n>1)%nat} ).
+  *** destruct n. auto with *. auto with *.
+}
+
 Admitted.
 
 
