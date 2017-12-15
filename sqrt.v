@@ -425,7 +425,7 @@ nia.
 Qed.
 
 Definition find_n (err:Q) := Zpos (Qden (normalize_error err)).
-
+(*
 Lemma Qpower_bound : forall (n:positive), Qpower_positive (1#4) n <= 1#n.
 Proof.
 intros.
@@ -434,7 +434,6 @@ induction n.
    {
       unfold Qle. simpl. nia.
    }
-  
 * simpl. unfold Qpower_positive. unfold Qinv. simpl. 
 Qed.
 
@@ -445,6 +444,7 @@ unfold find_n.
 unfold normalize_error.
 simpl.
 Qed.
+*)
 Fixpoint find_best_n (err:Q) (n:Z) (max:nat) := 
   if (Qlt_le_dec ((1#4)^n) err) then (n) else
   match max with
@@ -458,13 +458,12 @@ Definition sqrt_with_err (c:Q) (err:Q) :=
   let err1 := sqrt_err c c 1 in
   let err_final := err/err1 in
   let n := find_best_n err 0 (Z.to_nat (find_n err)) in
-  n.
+  sqrt c c (Z.to_nat n).
 (*
   sqrt c c (Z.to_nat (find_n err_final)).
 
 *)
 
-Eval compute in (find_n (1#15)).
 
 Eval compute in (sqrt_with_err (2#1) (1#10)).
 Eval compute in (sqrt_with_err (2#1) (1#100)).
