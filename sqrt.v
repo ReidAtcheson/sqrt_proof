@@ -72,8 +72,13 @@ Theorem sqrt_formula : forall c x0 n, c>=0 /\ (n>=1)%nat /\ x0>0 -> sqrt c x0 n 
 Proof.
 intros.
 destruct n.
-* assert( (0>=1)%nat ). apply H. assert( not (0>=1)%nat ). auto with *. eauto with *.
-* simpl. assert( (n-0)%nat = n). auto with *. rewrite H0. lra.
+* assert(Hx: (0>=1)%nat ) by apply H.
+  contradict Hx.
+  auto with *.
+* simpl.
+  assert(Hx: (n-0)%nat = n) by auto with *.
+  rewrite Hx.
+  auto with *.
 Qed.
 
 
@@ -81,73 +86,47 @@ Lemma nonneg_div_pos_isnonneg : forall a b, a>0/\b>0 -> a/b>0.
 Proof.
 intros.
 destruct b.
-{
+destruct Qnum.
+- assert( not (0<0#Qden) ) by auto with *.
+  assert( 0<0#Qden ) by apply H.
+  eauto with *.
+- destruct a.
   destruct Qnum.
-  {
-    assert( not (0<0#Qden) ).
+  + unfold Qdiv.
+    assert( 0# Qden0 == 0) by auto with *.
+    rewrite H0.
+    lra.
+  + unfold Qle, Qdiv, Qmult.
+    simpl.
     auto with *.
-    assert( 0<0#Qden ). apply H.
-    eauto with *.
-  }
-  {
-    destruct a.
-    destruct Qnum.
-    {
-      unfold Qdiv.
-      assert( 0# Qden0 == 0).
-      auto with *.
-      rewrite H0.
-      lra.
-    }
-    {
-      unfold Qle.
-      unfold Qdiv.
-      unfold Qmult.
-      simpl.
-      auto with *.
-    }
-    {
-      unfold Qle.
-      unfold Qdiv. unfold Qmult.
-      simpl.
-      assert( not (0 < Z.neg p0 # Qden0) ).
-      {
-        unfold Qlt.
-        simpl.
-        nia.
-      }
-      assert( (0 < Z.neg p0 # Qden0) ). apply H.
-      eauto with *.
-    }
-    
-  }
-  {
-    assert( 0 < Z.neg p # Qden ). apply H.
-    assert(not (0 < Z.neg p # Qden) ).
+  + unfold Qle, Qdiv, Qmult.
+    simpl.
+    assert( not (0 < Z.neg p0 # Qden0) ).
     {
       unfold Qlt.
       simpl.
-      unfold Zlt.
-      auto with *.
+      nia.
     }
-    eauto with *.
-  }
-}
+    assert( (0 < Z.neg p0 # Qden0) ) by apply H.
+    auto with *.
+- assert(Hx: 0 < Z.neg p # Qden ) by apply H.
+  (*assert(not (0 < Z.neg p # Qden) ).*)
+  contradict Hx.
+  unfold Qlt, Zlt.
+  simpl.
+  auto with *.
 Qed.
+
 Lemma sqrt_ispos : forall c x0 n, c>0 /\ x0>0 -> (sqrt c x0 n > 0).
 Proof.
 intros.
-induction n.
-  {
-    simpl.
-    lra.
+induction n; simpl.
+- lra.
+- remember (sqrt c x0 n) as m.
+  assert( (c/m)>0 ). {
+    apply nonneg_div_pos_isnonneg. lra.
   }
-  {
-    simpl.
-    remember (sqrt c x0 n) as m.
-    assert( (c/m)>0 ). apply nonneg_div_pos_isnonneg. lra.
-    lra.
-  }
+  lra.
 Qed.
 
 Theorem sqrt_err_poscondition : forall c x0 n, c>0 /\ (n>=1)%nat /\ x0>0 -> sqrt_err c x0 n >= 0.
@@ -155,43 +134,34 @@ Proof.
 intros.
 unfold sqrt_err.
 destruct n.
-{
-  eauto with *.
-}
-{
-  simpl.
-  assert(((1 # 2) * sqrt c x0 n +
+- eauto with *.
+- simpl.
+  assert(Hx: ((1 # 2) * sqrt c x0 n +
  (1 # 2) * (c / sqrt c x0 n)) *
 ((1 # 2) * sqrt c x0 n +
- (1 # 2) * (c / sqrt c x0 n)) - c == ((1#2)*((sqrt c x0 n) - c/(sqrt c x0 n)))*((1#2)*((sqrt c x0 n) - c/(sqrt c x0 n)))).
-  field.
-  induction n.
-  {
-    simpl.
-    assert( 
-      (x0 * (1 # 2) + c / x0 * (1 # 2)) *
-       (x0 * (1 # 2) + c / x0 * (1 # 2)) - c == ((1#2)*(x0 - c/x0))*((1#2)*(x0 - c/x0))
-     ).
-     {
-      field.
-      assert( 0 < x0). apply H.
-      auto with *.
-     }
-     assert( 0<x0 ). apply H.
-     lra.
-  }
-  {
-    assert( sqrt c x0 (S n) > 0 ).
-    {
-      apply sqrt_ispos.
+ (1 # 2) * (c / sqrt c x0 n)) - c == ((1#2)*((sqrt c x0 n) - c/(sqrt c x0 n)))*((1#2)*((sqrt c x0 n) - c/(sqrt c x0 n)))). {
+    field.
+    induction n.
+    - simpl.
+      assert( 0<x0 ) by apply H.
+      assert( 
+        (x0 * (1 # 2) + c / x0 * (1 # 2)) *
+         (x0 * (1 # 2) + c / x0 * (1 # 2)) - c == ((1#2)*(x0 - c/x0))*((1#2)*(x0 - c/x0))
+       ).
+       {
+        field.
+        auto with *.
+       }
+       lra.
+    - assert( sqrt c x0 (S n) > 0 ). {
+        apply sqrt_ispos.
+        lra.
+      }
       lra.
-    }
-    lra.
   }
-     rewrite H0.
-     remember ((1 # 2) * (sqrt c x0 n - c / sqrt c x0 n)) as m.
-     nra.
-}
+  rewrite Hx.
+  remember ((1 # 2) * (sqrt c x0 n - c / sqrt c x0 n)) as m.
+  nra.
 Qed.
 
 (*The next key property of sqrt_err is that if c>=0, then regardless of
@@ -200,45 +170,49 @@ Qed.
 Lemma num_inva_eq_dena : forall a, a > 0 -> (Qnum (/a) = Zpos (Qden a)).
 Proof.
 intros.
-assert(a == (Qnum a)#(Qden a)). auto with *.
+assert(Hy: a == (Qnum a)#(Qden a)) by auto with *.
 unfold Qinv.
 remember (Qnum a) as z1.
 destruct z1.
-* assert( (Qnum 0 = 0)%Z). auto with *.
-  rewrite H0 in H. assert(not (0 < 0 # Qden a)). auto with *.
+* assert(Hx: (Qnum 0 = 0)%Z) by auto with *.
+  rewrite Hy in H.
+  assert(not (0 < 0 # Qden a)) by auto with *.
   contradiction.
 * simpl. auto.
-* rewrite H0 in H.
-  assert(not (0 < (Z.neg p) # (Qden a) ) ). unfold Qlt. simpl. nia.
+* rewrite Hy in *.
+  assert(not (0 < (Z.neg p) # (Qden a) ) ). {
+    unfold Qlt. simpl. nia.
+  }
   contradiction.
 Qed.
 
 Lemma den_inva_eq_numa : forall a, a>0 -> ((Zpos (Qden (/a)))) = Qnum a.
 Proof.
 intros.
-assert( a == (Qnum a) # (Qden a) ). auto with *.
+assert( a == (Qnum a) # (Qden a) ) by auto with *.
 unfold Qinv.
 remember (Qnum a) as z1.
 destruct z1.
-* rewrite H0 in H. assert( not (0 < 0#Qden a) ). auto with *. contradiction.
+* rewrite H0 in H. assert( not (0 < 0#Qden a) ) by auto with *. contradiction.
 * simpl. auto with *.
-* rewrite H0 in H. assert(not (0< Z.neg p # Qden a)).
-  unfold Qlt. simpl. nia. contradiction.
+* rewrite H0 in H.
+  assert(not (0< Z.neg p # Qden a)). {
+    unfold Qlt. simpl. nia.
+  }
+  contradiction.
 Qed.
 
 Lemma a_leq_b_inva_geq_invb : forall a b, a>0 -> b>0 -> a>=b -> /a <= /b.
 Proof.
 intros.
 unfold Qlt.
-assert( Qnum (/a) = Zpos (Qden a) ).
-apply num_inva_eq_dena. apply H.
-assert( Qnum (/b) = Zpos (Qden b) ).
-apply num_inva_eq_dena. apply H0.
+assert(Hx: Qnum (/a) = Zpos (Qden a) ) by auto using num_inva_eq_dena. (* auto applies H because it is in scope *)
+assert(Hy: Qnum (/b) = Zpos (Qden b) ) by auto using num_inva_eq_dena.
 unfold Qle.
-rewrite H2. rewrite H3.
-assert( ((Zpos (Qden (/b))) = Qnum b)%Z). apply den_inva_eq_numa. apply H0.
-assert( ((Zpos (Qden (/a))) = Qnum a)%Z). apply den_inva_eq_numa. apply H.
-rewrite H4. rewrite H5. unfold Qle in H1.
+rewrite Hx. rewrite Hy.
+assert(Ha: ((Zpos (Qden (/b))) = Qnum b)%Z) by auto using den_inva_eq_numa.
+assert(Hb: ((Zpos (Qden (/a))) = Qnum a)%Z) by auto using den_inva_eq_numa.
+rewrite Ha. rewrite Hb. unfold Qle in H1.
 nia.
 Qed.
 
@@ -246,14 +220,11 @@ Lemma big_den_makes_smaller : forall a b c, a>0 -> b>0 -> c>0 -> b>=c -> (a/b) <
 Proof.
 intros.
 unfold Qdiv.
-assert( /b <= /c ).
-apply a_leq_b_inva_geq_invb. apply H0. apply H1. apply H2.
-assert( a* /b == /b * a). lra.
-assert( a * /c == /c * a). lra.
-rewrite H4. rewrite H5.
-apply Qmult_le_compat_r.
-apply a_leq_b_inva_geq_invb.
-apply H0. apply H1. apply H2.
+assert( /b <= /c ) by auto using a_leq_b_inva_geq_invb.
+assert(Ha: a* /b == /b * a) by lra.
+assert(Hb: a * /c == /c * a) by lra.
+rewrite Ha. rewrite Hb.
+apply Qmult_le_compat_r; auto using a_leq_b_inva_geq_invb. (* auto applies the hypothesi in scope automatically *)
 nra.
 Qed.
 Theorem sqrt_err_decay : forall (c:Q) (x0:Q) (n:nat), (n>=1)%nat /\ c>0 /\ x0>0 -> 
@@ -263,43 +234,62 @@ intros.
 unfold sqrt_err.
 simpl.
 remember (sqrt c x0 n) as m.
-assert( m>0 ). rewrite Heqm. apply (sqrt_ispos c x0 n). apply H.
-assert( c/m >0 ). apply nonneg_div_pos_isnonneg. lra.
-assert(((1 # 2) * m + (1 # 2) * (c / m)) *
+assert( m>0 ). {
+  rewrite Heqm.
+  apply (sqrt_ispos c x0 n).
+  apply H.
+}
+assert( c/m >0 ) by (apply nonneg_div_pos_isnonneg; lra).
+assert(Hx: ((1 # 2) * m + (1 # 2) * (c / m)) *
 ((1 # 2) * m + (1 # 2) * (c / m)) - c == (m*m + (c*c)/(m*m))*(1#4) - c/twoQ).
 {
   unfold twoQ.
   field.
   lra.
 }
-rewrite H2.
+rewrite Hx.
 unfold twoQ.
-assert( m*m == c + sqrt_err c x0 n). unfold sqrt_err. rewrite Heqm. lra.
-rewrite H3.
-remember (sqrt_err c x0 n) as k.
-assert(k>=0). rewrite Heqk. apply sqrt_err_poscondition.
-assert( (n>=1)%nat ). auto with *.
-assert( 0 <c ). apply H.
-assert( 0 < x0). apply H.
-auto with *.
-assert( ((c + k + c * c / (c + k)) * (1 # 4) - c/(2#1) ) <= (c + k + c * c / (c )) * (1 # 4) - c/(2#1)).
-{
-  assert( c+k >= c). lra.
-  assert( (c*c)/(c+k) <= (c*c)/c ).
-  * remember (c*c) as a. remember(c+k) as b.
-    apply big_den_makes_smaller. rewrite Heqa.
-    assert( 0 < c). lra. apply nonzero_r_squared_positive.
-    apply H6. rewrite Heqb. lra. lra. lra.
-  * lra.
+assert(Hy: m*m == c + sqrt_err c x0 n). {
+  unfold sqrt_err. rewrite Heqm. lra.
 }
-assert( c*c/c == c ).
-* assert( c*c/c == c*(c/c)). unfold Qdiv. lra. rewrite H6.
-  unfold Qdiv. assert( c * /c == 1). apply Qmult_inv_r. lra.
-  rewrite H7. lra.
-* rewrite H6 in H5.
-  assert( (c + k + c) * (1 # 4) - c / (2 # 1) == (c+k-c)*(1#4)). field.
-  rewrite H7 in H5. auto with *.
-
+rewrite Hy.
+remember (sqrt_err c x0 n) as k.
+assert(k>=0). {
+  rewrite Heqk.
+  apply sqrt_err_poscondition.
+  assert( (n>=1)%nat ) by auto with *.
+  assert( 0 <c ) by apply H.
+  assert( 0 < x0) by apply H.
+  auto with *.
+}
+assert(R1: ((c + k + c * c / (c + k)) * (1 # 4) - c/(2#1) ) <= (c + k + c * c / (c )) * (1 # 4) - c/(2#1)).
+{
+  assert( c+k >= c) by lra.
+  assert( (c*c)/(c+k) <= (c*c)/c ). {
+    remember (c*c) as a. remember(c+k) as b.
+    apply big_den_makes_smaller.
+    rewrite Heqa.
+    + assert(Hc: 0 < c) by lra.
+      apply nonzero_r_squared_positive.
+      apply Hc.
+    + rewrite Heqb.
+      lra.
+    + lra.
+    + lra.
+  }
+  lra.
+}
+assert(R2: c*c/c == c ). {
+  assert(R: c*c/c == c*(c/c)) by (unfold Qdiv; lra).
+  rewrite R; clear R.
+  unfold Qdiv.
+  assert(R: c * /c == 1) by (apply Qmult_inv_r; lra).
+  rewrite R. lra.
+}
+rewrite R2 in *. (* when possible avoid naming where *)
+assert(R3: (c + k + c) * (1 # 4) - c / (2 # 1) == (c+k-c)*(1#4)) by field.
+rewrite R3 in *.
+auto with *.
 Qed.
 
 
@@ -308,10 +298,9 @@ Proof.
 intros.
 induction n.
 * auto with *.
-* destruct IHn. destruct s.
-** auto with *.
-** auto with *.
-** auto with *.
+* destruct IHn.
+  - destruct s; auto with *. (* semi-colon makes applying auto to all branches. *)
+  - auto.
 Qed.
 
 Lemma Qlt_hack : forall a b c, a>=0 -> b>=0 -> c>=0 -> a <= c -> a*b <= c*b.
@@ -323,13 +312,13 @@ Qed.
 Lemma Qpower_reduction : forall a (n:Z), (n>0)%Z -> a>0 -> a^n == a*(a^(n-1)).
 Proof.
 intros.
-assert( a== a^1). lra.
+assert(R1: a== a^1) by lra.
 remember (a^n) as an. remember ( a^(n-1)) as anm1.
-rewrite H1.
+rewrite R1; clear R1.
 rewrite Heqan. rewrite Heqanm1.
 remember ((n-1)%Z) as nm1.
-assert( (n = 1 + (n-1))%Z). auto with *.
-rewrite H2.
+assert(R: (n = 1 + (n-1))%Z) by auto with *.
+rewrite R; clear R.
 rewrite Heqnm1.
 apply Qpower_plus.
 lra.
@@ -339,7 +328,7 @@ Lemma Zinject_to_nat_compat : forall (n:nat), (1<=n)%nat -> (Z.of_nat (n-1) = (Z
 Proof.
 intros.
 apply Nat2Z.inj_sub.
-apply H.
+auto.
 Qed.
 
 
