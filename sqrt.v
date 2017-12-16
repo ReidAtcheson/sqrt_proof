@@ -444,7 +444,7 @@ Definition sqrt_with_err (c:Q) (err:Q) :=
 *)
 
 
-Eval compute in (sqrt_with_err (2#1) (1#10)).
-Eval compute in (sqrt_with_err (2#1) (1#100)).
-Eval compute in (sqrt_with_err (2#1) (1#1000)).
-Eval compute in (sqrt_with_err (2#1) (1#10000)).
+Eval vm_compute in (sqrt_with_err (2#1) (1#10)).
+Eval vm_compute in (sqrt_with_err (2#1) (1#100)).
+Eval vm_compute in (sqrt_with_err (2#1) (1#1000)).
+Eval vm_compute in (sqrt_with_err (2#1) (1#10000)).
