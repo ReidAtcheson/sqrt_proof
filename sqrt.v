@@ -338,55 +338,45 @@ Theorem sqrt_err_convergence : forall (c:Q) (x0:Q) (n:nat), (n>1)%nat -> c>0 -> 
 (sqrt_err c x0 n) <= (sqrt_err c x0 1)*((1#4)^(Z_of_nat (n-1))) /\ (sqrt_err c x0 n) >= 0.
 Proof.
 intros.
-assert( 0 <= sqrt_err c x0 n). apply sqrt_err_poscondition. auto with *.
-assert( sqrt_err c x0 n <= sqrt_err c x0 1 * (1 # 4) ^ Z.of_nat (n-1)).
-{
-  induction n.
-  * assert( not (0>1)%nat ). auto with *. contradiction.
-  * assert( sqrt_err c x0 (S n) <= (sqrt_err c x0 n)*(1#4) ). apply sqrt_err_decay.
-  ** assert( {(n=0)%nat} + {(n=1)%nat} + { (n>1)%nat } ). apply nat_threecases.
-     destruct H3. destruct s.
-  + auto with *.
-  + auto with *.
-  + auto with *.
-  ** assert( {(n=0)%nat} + {(n=1)%nat} + { (n>1)%nat } ). apply nat_threecases. destruct H4. destruct s.
-  *** auto with *.
-  *** rewrite e in H3. simpl. rewrite e. simpl. apply H3.
-  *** assert(       sqrt_err c x0 n <=
-      sqrt_err c x0 1 * (1 # 4) ^ Z.of_nat (n - 1) ).
-      {
-        apply IHn.
-        apply g. apply sqrt_err_poscondition. auto with *.
-      }
-      assert( (S n - 1 = n)%nat ). auto with *. rewrite H5.
-      assert( sqrt_err c x0 (S n) <=
-sqrt_err c x0 1 * (1 # 4) ^ Z.of_nat (n-1)). nra.
-      assert(
-sqrt_err c x0 1 * (1 # 4) ^ Z.of_nat n == sqrt_err c x0 1 * (1#4) * (1 # 4) ^ Z.of_nat (n-1)).
-{
-  assert((1 # 4) ^ Z.of_nat n ==
-    (1#4)* (1 # 4) ^ Z.of_nat (n - 1)).
-  {
-    remember (1#4) as a.
-    remember (Z.of_nat n) as m.
-    assert( (Z.of_nat (n-1) = m-1)%Z ).
-    {
-      rewrite Heqm.
-      apply Nat2Z.inj_sub.
-      auto with *.
-    }
-    rewrite H7.
-    apply Qpower_reduction. auto with *. rewrite Heqa. lra.
+assert(Hx: 0 <= sqrt_err c x0 n) by (apply sqrt_err_poscondition; auto with *).
+assert(Hy: sqrt_err c x0 n <= sqrt_err c x0 1 * (1 # 4) ^ Z.of_nat (n-1)). {
+  induction n. {
+    assert( not (0>1)%nat ) by auto with *. contradiction.
   }
-  rewrite H7.
-  lra.
+  assert(X: sqrt_err c x0 (S n) <= (sqrt_err c x0 n)*(1#4) ). {
+    apply sqrt_err_decay.
+    split; auto with *.
+  }
+  assert(Y: {(n=0)%nat} + {(n=1)%nat} + { (n>1)%nat } ) by apply nat_threecases.
+  destruct Y. {
+    destruct s; subst; auto with *. (* apply auto with * on all branches *)
+  }
+  assert(Z: sqrt_err c x0 n <= sqrt_err c x0 1 * (1 # 4) ^ Z.of_nat (n - 1) ). {
+    apply IHn.
+    apply g.
+    auto using sqrt_err_poscondition with *.
+  }
+  assert(R: (S n - 1 = n)%nat ) by auto with *; rewrite R in *; clear R.
+  assert(R1: sqrt_err c x0 (S n) <= sqrt_err c x0 1 * (1 # 4) ^ Z.of_nat (n-1)) by nra.
+  assert(R2:sqrt_err c x0 1 * (1 # 4) ^ Z.of_nat n == sqrt_err c x0 1 * (1#4) * (1 # 4) ^ Z.of_nat (n-1)). {
+    assert(R2: (1 # 4) ^ Z.of_nat n == (1#4)* (1 # 4) ^ Z.of_nat (n - 1)). {
+      remember (1#4) as a.
+      remember (Z.of_nat n) as m.
+      assert(R2: (Z.of_nat (n-1) = m-1)%Z ). {
+        rewrite Heqm.
+        apply Nat2Z.inj_sub.
+        auto with *.
+      }
+      rewrite R2.
+      apply Qpower_reduction. auto with *. rewrite Heqa. lra.
+    }
+    rewrite R2; clear R2.
+    lra.
+  }
+  rewrite R2 in *.
+  nra.
 }
-nra.
-  
-}
-* auto with *.
-
-
+auto with *.
 Qed.
 
 
